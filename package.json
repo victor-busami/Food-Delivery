@@ -1,0 +1,12 @@
+{
+  "name": "food-delivery-app",
+  "version": "1.0.0",
+  "description": "Minimalistic food delivery app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.6"
+  }
+}
