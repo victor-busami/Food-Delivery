@@ -457,6 +457,10 @@
     let cart = [];
     let selectedRestaurantId = null;
 
+    function formatCurrency(amount) {
+      return `KSh ${amount.toFixed(2)}`;
+    }
+
     // Tab Navigation
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -508,7 +512,7 @@
                   <div class="item-info">
                     <div class="item-name">${item.name}</div>
                     <div class="item-description">${item.description}</div>
-                    <div class="item-price">$${item.price.toFixed(2)}</div>
+                    <div class="item-price">${formatCurrency(item.price)}</div>
                   </div>
                   <div class="item-controls">
                     <input type="number" class="qty-input" min="1" max="10" value="1" id="qty-${item.id}">
@@ -562,15 +566,15 @@
         <div class="cart-item">
           <div class="cart-item-info">
             <div class="cart-item-name">${item.name}</div>
-            <div class="cart-item-qty">Qty: ${item.quantity} × $${item.price.toFixed(2)}</div>
+            <div class="cart-item-qty">Qty: ${item.quantity} × ${formatCurrency(item.price)}</div>
           </div>
-          <div class="cart-item-price">$${(item.price * item.quantity).toFixed(2)}</div>
+          <div class="cart-item-price">${formatCurrency(item.price * item.quantity)}</div>
           <button class="remove-btn" onclick="removeFromCart(${idx})">Remove</button>
         </div>
       `).join('');
 
-      document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
-      document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+      document.getElementById('subtotal').textContent = formatCurrency(subtotal);
+      document.getElementById('total').textContent = formatCurrency(total);
     }
 
     // Remove from Cart
@@ -648,7 +652,7 @@
               <strong>${order.customer_name}</strong> • ${new Date(order.created_at).toLocaleDateString()}
             </div>
             <div class="order-items">${JSON.parse(order.items).map(item => `${item.name} (${item.quantity})`).join(', ')}</div>
-            <div class="order-price">Total: $${order.total_price.toFixed(2)}</div>
+            <div class="order-price">Total: ${formatCurrency(order.total_price)}</div>
           </div>
         `).join('');
       } catch (err) {
