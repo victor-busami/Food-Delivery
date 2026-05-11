@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Food Delivery</title>
+  <title>Food Ordering</title>
   <style>
     * {
       margin: 0;
@@ -251,6 +251,13 @@
       border-top: 1px solid #eee;
     }
 
+    .summary-note {
+      margin: 0 0 12px;
+      color: #666;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
     .form-group {
       margin-bottom: 15px;
     }
@@ -356,6 +363,121 @@
       color: #065f46;
     }
 
+    .status-approved {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-rejected {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .admin-panel {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .admin-panel h2 {
+      margin-bottom: 8px;
+    }
+
+    .admin-hint {
+      color: #666;
+      font-size: 13px;
+      margin-bottom: 15px;
+    }
+
+    .admin-credentials {
+      background: #f9fafb;
+      border: 1px dashed #d1d5db;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 15px;
+      font-size: 13px;
+      color: #374151;
+    }
+
+    .admin-credentials strong {
+      display: block;
+      margin-bottom: 4px;
+      color: #111827;
+    }
+
+    .admin-login-form {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      align-items: end;
+      margin-bottom: 12px;
+    }
+
+    .admin-login-form .form-group {
+      margin-bottom: 0;
+    }
+
+    .admin-login-form input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .admin-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .admin-btn {
+      background: #111827;
+      color: white;
+    }
+
+    .admin-btn:hover {
+      background: #374151;
+    }
+
+    .logout-btn {
+      background: #fff;
+      color: #111827;
+      border: 1px solid #d1d5db;
+    }
+
+    .logout-btn:hover {
+      background: #f9fafb;
+    }
+
+    .order-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .approve-btn {
+      background: #16a34a;
+      color: white;
+    }
+
+    .approve-btn:hover {
+      background: #15803d;
+    }
+
+    .reject-btn {
+      background: #dc2626;
+      color: white;
+    }
+
+    .reject-btn:hover {
+      background: #b91c1c;
+    }
+
     .order-info {
       color: #666;
       font-size: 13px;
@@ -402,34 +524,39 @@
 <body>
   <div class="container">
     <header>
-      <h1>🍕 Food Delivery</h1>
+      <h1>🍕 Food Ordering</h1>
       <div class="tab-buttons">
-        <button class="tab-btn active" data-tab="browse">Browse</button>
-        <button class="tab-btn" data-tab="cart">Cart</button>
+        <button class="tab-btn active" data-tab="browse">Menu</button>
+        <button class="tab-btn" data-tab="cart">Basket</button>
         <button class="tab-btn" data-tab="orders">Orders</button>
       </div>
     </header>
 
-    <!-- Browse Section -->
+    <!-- Menu Section -->
     <section id="browse" class="section active">
       <div class="restaurants-grid" id="restaurantsList"></div>
       <div id="menuContainer"></div>
     </section>
 
-    <!-- Cart Section -->
+    <!-- Basket Section -->
     <section id="cart" class="section">
       <div class="cart-section">
-        <h2>Your Cart</h2>
+        <h2>Your Basket</h2>
         <div class="cart-items" id="cartItems"></div>
         
         <div class="checkout-form" id="checkoutForm" style="display: none;">
+          <p class="summary-note">Itemized bill below: food subtotal, tax, and grand total are shown separately so every charge is clear.</p>
           <div class="price-summary">
             <div class="price-row">
               <span>Subtotal:</span>
               <span id="subtotal">$0.00</span>
             </div>
+            <div class="price-row">
+              <span>Tax (8% VAT):</span>
+              <span id="tax">$0.00</span>
+            </div>
             <div class="price-row total-row">
-              <span>Total:</span>
+              <span>Grand Total:</span>
               <span id="total">$0.00</span>
             </div>
           </div>
@@ -448,6 +575,33 @@
 
     <!-- Orders Section -->
     <section id="orders" class="section">
+      <div class="admin-panel">
+        <h2>Admin Orders</h2>
+        <p class="admin-hint">Use the hardcoded admin login to review orders and approve or reject them.</p>
+        <div class="admin-credentials">
+          <strong>Admin login</strong>
+          Username: admin<br>
+          Password: kenya123
+        </div>
+        <div id="adminLoginView">
+          <div class="admin-login-form">
+            <div class="form-group">
+              <label>Admin Username:</label>
+              <input type="text" id="adminUsername" placeholder="Enter admin username">
+            </div>
+            <div class="form-group">
+              <label>Admin Password:</label>
+              <input type="password" id="adminPassword" placeholder="Enter admin password">
+            </div>
+            <button class="admin-btn" id="adminLoginBtn">Login</button>
+          </div>
+        </div>
+        <div id="adminStatusView" style="display:none;">
+          <div class="admin-actions">
+            <button class="logout-btn" id="adminLogoutBtn">Logout</button>
+          </div>
+        </div>
+      </div>
       <div id="ordersList"></div>
     </section>
   </div>
@@ -456,6 +610,12 @@
     const API_URL = 'http://localhost:3000';
     let cart = [];
     let selectedRestaurantId = null;
+    let isAdminLoggedIn = false;
+
+    const ADMIN_CREDENTIALS = {
+      username: 'admin',
+      password: 'kenya123'
+    };
 
     function formatCurrency(amount) {
       return `KSh ${amount.toFixed(2)}`;
@@ -474,6 +634,62 @@
         if (tabName === 'orders') loadOrders();
       });
     });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const adminLoginBtn = document.getElementById('adminLoginBtn');
+      const adminLogoutBtn = document.getElementById('adminLogoutBtn');
+
+      if (adminLoginBtn) {
+        adminLoginBtn.addEventListener('click', handleAdminLogin);
+      }
+
+      if (adminLogoutBtn) {
+        adminLogoutBtn.addEventListener('click', handleAdminLogout);
+      }
+    });
+
+    function handleAdminLogin() {
+      const username = document.getElementById('adminUsername').value.trim();
+      const password = document.getElementById('adminPassword').value;
+
+      if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+        isAdminLoggedIn = true;
+        document.getElementById('adminLoginView').style.display = 'none';
+        document.getElementById('adminStatusView').style.display = 'block';
+        loadOrders();
+        return;
+      }
+
+      alert('Invalid admin credentials');
+    }
+
+    function handleAdminLogout() {
+      isAdminLoggedIn = false;
+      document.getElementById('adminLoginView').style.display = 'block';
+      document.getElementById('adminStatusView').style.display = 'none';
+      document.getElementById('adminUsername').value = '';
+      document.getElementById('adminPassword').value = '';
+      loadOrders();
+    }
+
+    async function updateOrderStatus(orderId, status) {
+      try {
+        const res = await fetch(`${API_URL}/api/orders/${orderId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        });
+
+        if (res.ok) {
+          loadOrders();
+        } else {
+          alert('Unable to update order status');
+        }
+      } catch (err) {
+        console.error('Error updating order status:', err);
+        alert('Unable to update order status');
+      }
+    }
 
     // Load Restaurants
     async function loadRestaurants() {
@@ -574,6 +790,7 @@
       `).join('');
 
       document.getElementById('subtotal').textContent = formatCurrency(subtotal);
+      document.getElementById('tax').textContent = formatCurrency(tax);
       document.getElementById('total').textContent = formatCurrency(total);
     }
 
@@ -653,6 +870,12 @@
             </div>
             <div class="order-items">${JSON.parse(order.items).map(item => `${item.name} (${item.quantity})`).join(', ')}</div>
             <div class="order-price">Total: ${formatCurrency(order.total_price)}</div>
+            ${isAdminLoggedIn ? `
+              <div class="order-actions">
+                <button class="approve-btn" onclick="updateOrderStatus(${order.id}, 'approved')">Approve</button>
+                <button class="reject-btn" onclick="updateOrderStatus(${order.id}, 'rejected')">Reject</button>
+              </div>
+            ` : ''}
           </div>
         `).join('');
       } catch (err) {
