@@ -28,8 +28,13 @@ The app will be available at `http://localhost:3000`
 
 ## Project Structure
 
-- `server.js` - Node.js HTTP server with SQLite API
-- `index.html` - Frontend with HTML, CSS, and vanilla JavaScript
+- `server.js` - Thin root launcher for the app server
+- `src/server.js` - Node.js HTTP server with SQLite API
+- `src/db.js` - Database setup and seed loading
+- `src/data/seed.js` - Kenyan restaurant/menu seed data
+- `public/index.html` - Frontend HTML shell
+- `public/css/styles.css` - Stylesheet
+- `public/js/app.js` - Frontend behavior and admin flow
 - `db.sqlite` - SQLite database file (auto-created)
 - `package.json` - Dependencies
 
