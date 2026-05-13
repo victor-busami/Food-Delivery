@@ -68,6 +68,7 @@ The app will be available at `http://localhost:3000`
 2. **Add to Cart**: Choose items and quantities
 3. **Checkout**: Enter your name and place order
 4. **View Orders**: Check order history
+5. **Add New Restaurant**: Add a new restaurant and its menu options
 
 ## API Endpoints
 
