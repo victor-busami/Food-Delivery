@@ -5,89 +5,112 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Food Ordering</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .menu-cart-wrapper {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      margin-top: 20px;
+    }
+    #menuContainer {
+      flex: 2;
+    }
+    .cart-panel {
+      flex: 1;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 20px;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>🍕 Food Ordering</h1>
-      <div class="tab-buttons">
-        <button class="tab-btn active" data-tab="browse">Menu</button>
-        <button class="tab-btn" data-tab="cart">Basket</button>
-        <button class="tab-btn" data-tab="orders">Orders</button>
-      </div>
-    </header>
+<div class="container">
+  <header>
+    <h1>🍕 Food Ordering</h1>
+    <div class="tab-buttons">
+      <button class="tab-btn active" data-tab="browse">Menu</button>
+      <button class="tab-btn" data-tab="orders">
+        Orders
+        <span id="notificationDot" style="display: none; height: 10px; width: 10px; background-color: #ff4757; border-radius: 50%; margin-left: 6px; vertical-align: middle;"></span>
+      </button>
+    </div>
+  </header>
 
-    <section id="browse" class="section active">
-      <div class="restaurants-grid" id="restaurantsList"></div>
+  <section id="browse" class="section active">
+    <div class="restaurants-grid" id="restaurantsList"></div>
+
+    <div class="menu-cart-wrapper">
       <div id="menuContainer"></div>
-    </section>
 
-    <section id="cart" class="section">
-      <div class="cart-section">
-        <h2>Your Basket</h2>
+      <div class="cart-panel" id="cartPanel">
+        <h2 style="margin-top: 0;">Your Basket</h2>
         <div class="cart-items" id="cartItems"></div>
 
         <div class="checkout-form" id="checkoutForm" style="display: none;">
-          <p class="summary-note">Itemized bill below: food subtotal, tax, and grand total are shown separately so every charge is clear.</p>
-          <div class="price-summary">
-            <div class="price-row">
+          <p class="summary-note" style="font-size: 0.9em; color: #666;">Itemized bill below: food subtotal, tax, and grand total are shown separately.</p>
+          <div class="price-summary" style="margin: 15px 0; padding-top: 15px; border-top: 1px solid #eee;">
+            <div class="price-row" style="display: flex; justify-content: space-between; margin-bottom: 5px;">
               <span>Subtotal:</span>
-              <span id="subtotal">$0.00</span>
+              <span id="subtotal">KSh 0.00</span>
             </div>
-            <div class="price-row">
+            <div class="price-row" style="display: flex; justify-content: space-between; margin-bottom: 5px;">
               <span>Tax (8% VAT):</span>
-              <span id="tax">$0.00</span>
+              <span id="tax">KSh 0.00</span>
             </div>
-            <div class="price-row total-row">
+            <div class="price-row total-row" style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 10px; font-size: 1.1em;">
               <span>Grand Total:</span>
-              <span id="total">$0.00</span>
+              <span id="total">KSh 0.00</span>
             </div>
           </div>
 
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px; font-weight: bold;">Your Name:</label>
+            <input type="text" id="customerName" placeholder="Enter your name" required style="width: 100%; padding: 8px; box-sizing: border-box;">
+          </div>
+
+          <button class="checkout-btn" id="checkoutBtn" style="width: 100%; padding: 12px; background: #000; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Place Order</button>
+        </div>
+
+        <div class="empty-message" id="emptyCart" style="text-align: center; color: #888; padding: 20px 0;">Your cart is empty</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="orders" class="section">
+    <div class="admin-panel">
+      <h2>Admin Orders</h2>
+      <p class="admin-hint">Use the hardcoded admin login to review orders and approve or reject them.</p>
+      <div class="admin-credentials">
+        <strong>Admin login</strong><br>
+        Username: admin<br>
+        Password: admin
+      </div>
+      <div id="adminLoginView">
+        <div class="admin-login-form">
           <div class="form-group">
-            <label>Your Name:</label>
-            <input type="text" id="customerName" placeholder="Enter your name" required>
+            <label>Admin Username:</label>
+            <input type="text" id="adminUsername" placeholder="Enter admin username">
           </div>
-
-          <button class="checkout-btn" id="checkoutBtn">Place Order</button>
-        </div>
-
-        <div class="empty-message" id="emptyCart">Your cart is empty</div>
-      </div>
-    </section>
-
-    <section id="orders" class="section">
-      <div class="admin-panel">
-        <h2>Admin Orders</h2>
-        <p class="admin-hint">Use the hardcoded admin login to review orders and approve or reject them.</p>
-        <div class="admin-credentials">
-          <strong>Admin login</strong>
-          Username: admin<br>
-          Password: admin
-        </div>
-        <div id="adminLoginView">
-          <div class="admin-login-form">
-            <div class="form-group">
-              <label>Admin Username:</label>
-              <input type="text" id="adminUsername" placeholder="Enter admin username">
-            </div>
-            <div class="form-group">
-              <label>Admin Password:</label>
-              <input type="password" id="adminPassword" placeholder="Enter admin password">
-            </div>
-            <button class="admin-btn" id="adminLoginBtn">Login</button>
+          <div class="form-group">
+            <label>Admin Password:</label>
+            <input type="password" id="adminPassword" placeholder="Enter admin password">
           </div>
-        </div>
-        <div id="adminStatusView" style="display:none;">
-          <div class="admin-actions">
-            <button class="logout-btn" id="adminLogoutBtn">Logout</button>
-          </div>
+          <button class="admin-btn" id="adminLoginBtn">Login</button>
         </div>
       </div>
-      <div id="ordersList"></div>
-    </section>
-  </div>
+      <div id="adminStatusView" style="display:none;">
+        <div class="admin-actions">
+          <button class="logout-btn" id="adminLogoutBtn">Logout</button>
+        </div>
+      </div>
+    </div>
+    <div id="ordersList"></div>
+  </section>
+</div>
 
-  <script src="/js/app.js" defer></script>
+<script src="/js/app.js" defer></script>
 </body>
 </html>
