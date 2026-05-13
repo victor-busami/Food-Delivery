@@ -60,11 +60,58 @@ async function handleApiRequest(req, res) {
     return true;
   }
 
+  if (req.url === '/api/restaurants' && req.method === 'POST') {
+    try {
+      const body = await readRequestBody(req);
+      const { name, cuisine, rating } = JSON.parse(body);
+
+      db.run(
+          'INSERT INTO restaurants (name, cuisine, rating) VALUES (?, ?, ?)',
+          [name, cuisine, rating || 0],
+          function () {
+            sendJson(res, 201, { id: this.lastID, success: true });
+          }
+      );
+    } catch (error) {
+      sendJson(res, 400, { error: 'Invalid request' });
+    }
+    return true;
+  }
+
   if (req.url.match(/^\/api\/menu\/\d+$/) && req.method === 'GET') {
     const restaurantId = req.url.split('/')[3];
     db.all('SELECT * FROM menu_items WHERE restaurant_id = ?', [restaurantId], (err, rows) => {
       sendJson(res, 200, rows || []);
     });
+    return true;
+  }
+
+  if (req.url === '/api/menu' && req.method === 'POST') {
+    try {
+      const body = await readRequestBody(req);
+      const { restaurantId, name, description, price, category } = JSON.parse(body);
+
+      db.run(
+          'INSERT INTO menu_items (restaurant_id, name, description, price, category) VALUES (?, ?, ?, ?, ?)',
+          [restaurantId, name, description, price, category],
+          function (err) {
+            if (err) {
+              db.run(
+                  'INSERT INTO menu_items (restaurant_id, name, description, price) VALUES (?, ?, ?, ?)',
+                  [restaurantId, name, description, price],
+                  function (err2) {
+                    if (err2) return sendJson(res, 500, { error: 'Database error' });
+                    sendJson(res, 201, { id: this.lastID, success: true });
+                  }
+              );
+            } else {
+              sendJson(res, 201, { id: this.lastID, success: true });
+            }
+          }
+      );
+    } catch (error) {
+      sendJson(res, 400, { error: 'Invalid request' });
+    }
     return true;
   }
 
@@ -74,11 +121,11 @@ async function handleApiRequest(req, res) {
       const { customerName, restaurantId, items, totalPrice } = JSON.parse(body);
 
       db.run(
-        'INSERT INTO orders (customer_name, restaurant_id, items, total_price) VALUES (?, ?, ?, ?)',
-        [customerName, restaurantId, JSON.stringify(items), totalPrice],
-        function () {
-          sendJson(res, 201, { id: this.lastID, success: true });
-        }
+          'INSERT INTO orders (customer_name, restaurant_id, items, total_price) VALUES (?, ?, ?, ?)',
+          [customerName, restaurantId, JSON.stringify(items), totalPrice],
+          function () {
+            sendJson(res, 201, { id: this.lastID, success: true });
+          }
       );
     } catch (error) {
       sendJson(res, 400, { error: 'Invalid request' });
