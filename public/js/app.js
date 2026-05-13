@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   loadRestaurants();
+  updateNotificationDot();
 });
 
 function handleAdminLogin() {
@@ -79,6 +80,7 @@ async function updateOrderStatus(orderId, status) {
 
     if (response.ok) {
       loadOrders();
+      updateNotificationDot();
     } else {
       alert('Unable to update order status');
     }
@@ -101,8 +103,51 @@ async function loadRestaurants() {
         <div class="rating">⭐ ${restaurant.rating}</div>
       </div>
     `).join('');
+
+    list.innerHTML += `
+      <div class="restaurant-card add-btn-card" onclick="showAddRestaurantForm()" style="display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer; border: 2px dashed #ccc;">
+        <div class="restaurant-name" style="font-size: 24px; margin-bottom: 5px;">+</div>
+        <div class="restaurant-cuisine">Add Restaurant</div>
+      </div>
+    `;
   } catch (error) {
     console.error('Error loading restaurants:', error);
+  }
+}
+
+function showAddRestaurantForm() {
+  const list = document.getElementById('restaurantsList');
+  list.innerHTML = `
+    <div class="form-container" style="padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; max-width: 400px;">
+      <h3 style="margin-top: 0;">Add New Restaurant</h3>
+      <input type="text" id="newRestName" placeholder="Restaurant Name" style="display:block; margin-bottom:10px; width:100%; padding:10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+      <input type="text" id="newRestCuisine" placeholder="Cuisine Style (e.g., Kenyan)" style="display:block; margin-bottom:10px; width:100%; padding:10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+      <input type="number" id="newRestRating" placeholder="Rating (0.0 to 5.0)" step="0.1" min="0" max="5" style="display:block; margin-bottom:15px; width:100%; padding:10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+      <button onclick="submitNewRestaurant()" style="padding: 10px 15px; background: #000; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Save Restaurant</button>
+      <button onclick="loadRestaurants()" style="padding: 10px 15px; margin-left: 10px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">Cancel</button>
+    </div>
+  `;
+}
+
+async function submitNewRestaurant() {
+  const name = document.getElementById('newRestName').value;
+  const cuisine = document.getElementById('newRestCuisine').value;
+  const rating = parseFloat(document.getElementById('newRestRating').value) || 0;
+
+  if (!name) return;
+
+  try {
+    const response = await fetch(`${API_URL}/api/restaurants`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, cuisine, rating })
+    });
+
+    if (response.ok) {
+      loadRestaurants();
+    }
+  } catch (error) {
+    console.error('Error adding restaurant:', error);
   }
 }
 
@@ -112,13 +157,25 @@ async function loadMenu(restaurantId, restaurantName) {
     const response = await fetch(`${API_URL}/api/menu/${restaurantId}`);
     const items = await response.json();
 
+    const categories = items.reduce((acc, item) => {
+      const category = item.category || 'Main Dish';
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(item);
+      return acc;
+    }, {});
+
     const container = document.getElementById('menuContainer');
-    container.innerHTML = `
+    let menuContent = `
       <div class="menu-container">
         <button class="back-btn" onclick="loadRestaurants(); document.getElementById('menuContainer').innerHTML=''">← Back</button>
-        <h2>${restaurantName}</h2>
+        <h2 id="currentRestaurantName">${restaurantName}</h2>
+    `;
+
+    for (const [category, categoryItems] of Object.entries(categories)) {
+      menuContent += `
+        <h3 style="margin-top: 25px; border-bottom: 2px solid #f0f0f0; padding-bottom: 8px;">${category}</h3>
         <div class="menu-items">
-          ${items.map((item) => `
+          ${categoryItems.map((item) => `
             <div class="menu-item">
               <div class="item-info">
                 <div class="item-name">${item.name}</div>
@@ -132,10 +189,63 @@ async function loadMenu(restaurantId, restaurantName) {
             </div>
           `).join('')}
         </div>
+      `;
+    }
+
+    menuContent += `
+      <div style="margin-top: 30px; padding: 15px; border: 2px dashed #ccc; border-radius: 8px; text-align: center; cursor: pointer; background: #fafafa;" onclick="document.getElementById('addMenuItemForm').style.display='block'">
+        <h4 style="margin: 0; color: #555;">+ Add New Menu Item</h4>
       </div>
-    `;
+      <div id="addMenuItemForm" style="display: none; margin-top: 15px; padding: 20px; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <h4 style="margin-top: 0;">New Dish Details</h4>
+        <input type="text" id="newItemName" placeholder="Dish Name (e.g., Chapati)" style="display:block; margin-bottom:10px; width:100%; padding:8px; box-sizing: border-box;">
+        <input type="text" id="newItemDesc" placeholder="Description" style="display:block; margin-bottom:10px; width:100%; padding:8px; box-sizing: border-box;">
+        <input type="number" id="newItemPrice" placeholder="Price (KSh)" style="display:block; margin-bottom:10px; width:100%; padding:8px; box-sizing: border-box;">
+        <input type="text" id="newItemCategory" placeholder="Category (Drinks, Dessert, Main Dish)" style="display:block; margin-bottom:15px; width:100%; padding:8px; box-sizing: border-box;">
+        <button onclick="submitNewMenuItem()" style="padding: 10px 15px; background: #000; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Save Dish</button>
+        <button onclick="document.getElementById('addMenuItemForm').style.display='none'" style="padding: 10px 15px; margin-left: 10px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">Cancel</button>
+      </div>
+    </div>`;
+
+    container.innerHTML = menuContent;
+    updateCart();
   } catch (error) {
     console.error('Error loading menu:', error);
+  }
+}
+
+async function submitNewMenuItem() {
+  const name = document.getElementById('newItemName').value;
+  const description = document.getElementById('newItemDesc').value;
+  const price = parseFloat(document.getElementById('newItemPrice').value);
+  const category = document.getElementById('newItemCategory').value;
+
+  if (!name || isNaN(price)) {
+    alert("Please enter a valid name and price.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/api/menu`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        restaurantId: selectedRestaurantId,
+        name,
+        description,
+        price,
+        category: category || 'Main Dish'
+      })
+    });
+
+    if (response.ok) {
+      const restName = document.getElementById('currentRestaurantName').innerText;
+      loadMenu(selectedRestaurantId, restName);
+    } else {
+      alert("Error saving item.");
+    }
+  } catch (error) {
+    console.error('Error adding menu item:', error);
   }
 }
 
@@ -149,13 +259,15 @@ function addToCart(itemId, itemName, price, qty) {
     cart.push({ id: itemId, name: itemName, price, quantity, restaurantId: selectedRestaurantId });
   }
 
-  alert(`${itemName} added to cart!`);
+  updateCart();
 }
 
 function updateCart() {
   const cartContainer = document.getElementById('cartItems');
   const checkoutForm = document.getElementById('checkoutForm');
   const emptyCart = document.getElementById('emptyCart');
+
+  if (!cartContainer || !checkoutForm || !emptyCart) return;
 
   if (cart.length === 0) {
     cartContainer.innerHTML = '';
@@ -224,6 +336,7 @@ async function placeOrder() {
       document.getElementById('customerName').value = '';
       updateCart();
       loadOrders();
+      updateNotificationDot();
     }
   } catch (error) {
     console.error('Error placing order:', error);
@@ -266,7 +379,24 @@ async function loadOrders() {
   }
 }
 
+async function updateNotificationDot() {
+  try {
+    const response = await fetch(`${API_URL}/api/orders`);
+    const orders = await response.json();
+    const hasPending = orders.some(order => order.status === 'pending');
+    const dot = document.getElementById('notificationDot');
+    if (dot) {
+      dot.style.display = hasPending ? 'inline-block' : 'none';
+    }
+  } catch (error) {
+    console.error('Error updating notification dot:', error);
+  }
+}
+
 window.loadMenu = loadMenu;
 window.addToCart = addToCart;
 window.removeFromCart = removeFromCart;
 window.updateOrderStatus = updateOrderStatus;
+window.showAddRestaurantForm = showAddRestaurantForm;
+window.submitNewRestaurant = submitNewRestaurant;
+window.submitNewMenuItem = submitNewMenuItem;
