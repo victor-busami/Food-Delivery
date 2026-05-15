@@ -100,7 +100,7 @@ async function loadRestaurants() {
       <div class="restaurant-card" onclick="loadMenu(${restaurant.id}, '${restaurant.name}')">
         <div class="restaurant-name">${restaurant.name}</div>
         <div class="restaurant-cuisine">${restaurant.cuisine}</div>
-        <div class="rating">⭐ ${restaurant.rating}</div>
+        
       </div>
     `).join('');
 

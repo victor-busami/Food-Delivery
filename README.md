@@ -1,16 +1,16 @@
-# 🍕 Food Delivery App
+#  Food Delivery App
 
 A minimalistic food delivery application with SQLite database and vanilla JavaScript.
 
 ## Features
 
-✅ Browse restaurants and menu items
-✅ Add items to cart
-✅ Place orders with customer name
-✅ View order history
-✅ SQLite database (file-based)
-✅ Vanilla JavaScript (no frameworks)
-✅ Minimalistic UI
+ Browse restaurants and menu items
+ Add items to cart
+ Place orders with customer name
+ View order history
+ SQLite database (file-based)
+ Vanilla JavaScript (no frameworks)
+ Minimalistic UI
 
 ## Setup
 
