@@ -12,6 +12,34 @@ function formatCurrency(amount) {
   return `KSh ${amount.toFixed(2)}`;
 }
 
+function buildImageVariant(imageUrl, width) {
+  try {
+    const url = new URL(imageUrl);
+    if (url.protocol === 'http:' || url.protocol === 'https:') {
+      url.searchParams.set('auto', 'format');
+      url.searchParams.set('fit', 'crop');
+      url.searchParams.set('q', '80');
+      url.searchParams.set('w', String(width));
+      return url.toString();
+    }
+  } catch (error) {
+    // Fall back to local-path handling below.
+  }
+
+  return imageUrl.replace(/-640(\.[^.]+)$/, `-${width}$1`);
+}
+
+function getResponsiveImageConfig(imageUrl) {
+  const fallbackUrl = 'https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&q=80';
+  const resolvedUrl = imageUrl || fallbackUrl;
+
+  return {
+    src: buildImageVariant(resolvedUrl, 640),
+    srcset: `${buildImageVariant(resolvedUrl, 640)} 640w, ${buildImageVariant(resolvedUrl, 1280)} 1280w`,
+    sizes: '(max-width: 768px) 100vw, 140px'
+  };
+}
+
 document.querySelectorAll('.tab-btn').forEach((btn) => {
   btn.addEventListener('click', (e) => {
     const tabName = e.target.dataset.tab;
@@ -177,6 +205,21 @@ async function loadMenu(restaurantId, restaurantName) {
         <div class="menu-items">
           ${categoryItems.map((item) => `
             <div class="menu-item">
+              <div class="item-media">
+                ${(() => {
+                  const image = getResponsiveImageConfig(item.image_url);
+                  return `
+                    <img
+                      class="item-image"
+                      src="${image.src}"
+                      ${image.srcset ? `srcset="${image.srcset}" sizes="${image.sizes}"` : ''}
+                      alt="${item.name}"
+                      loading="lazy"
+                      decoding="async"
+                    >
+                  `;
+                })()}
+              </div>
               <div class="item-info">
                 <div class="item-name">${item.name}</div>
                 <div class="item-description">${item.description}</div>
@@ -202,6 +245,7 @@ async function loadMenu(restaurantId, restaurantName) {
         <input type="text" id="newItemDesc" placeholder="Description" style="display:block; margin-bottom:10px; width:100%; padding:8px; box-sizing: border-box;">
         <input type="number" id="newItemPrice" placeholder="Price (KSh)" style="display:block; margin-bottom:10px; width:100%; padding:8px; box-sizing: border-box;">
         <input type="text" id="newItemCategory" placeholder="Category (Drinks, Dessert, Main Dish)" style="display:block; margin-bottom:15px; width:100%; padding:8px; box-sizing: border-box;">
+        <input type="text" id="newItemImageUrl" placeholder="Image URL (optional, e.g. /assets/images/dishes/chapati-640.jpg)" style="display:block; margin-bottom:15px; width:100%; padding:8px; box-sizing: border-box;">
         <button onclick="submitNewMenuItem()" style="padding: 10px 15px; background: #000; color: #fff; border: none; border-radius: 4px; cursor: pointer;">Save Dish</button>
         <button onclick="document.getElementById('addMenuItemForm').style.display='none'" style="padding: 10px 15px; margin-left: 10px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;">Cancel</button>
       </div>
@@ -219,6 +263,7 @@ async function submitNewMenuItem() {
   const description = document.getElementById('newItemDesc').value;
   const price = parseFloat(document.getElementById('newItemPrice').value);
   const category = document.getElementById('newItemCategory').value;
+  const imageUrl = document.getElementById('newItemImageUrl').value.trim();
 
   if (!name || isNaN(price)) {
     alert("Please enter a valid name and price.");
@@ -234,7 +279,8 @@ async function submitNewMenuItem() {
         name,
         description,
         price,
-        category: category || 'Main Dish'
+        category: category || 'Main Dish',
+        imageUrl: imageUrl || null
       })
     });
 

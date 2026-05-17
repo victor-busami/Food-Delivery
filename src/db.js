@@ -25,6 +25,8 @@ function createTables() {
     name TEXT NOT NULL,
     description TEXT,
     price REAL NOT NULL,
+    category TEXT DEFAULT 'Main Dish',
+    image_url TEXT,
     FOREIGN KEY(restaurant_id) REFERENCES restaurants(id)
   )`);
 
@@ -40,6 +42,37 @@ function createTables() {
   )`);
 }
 
+function ensureMenuItemColumns(callback) {
+  db.all('PRAGMA table_info(menu_items)', (err, columns) => {
+    if (err) {
+      console.error(err.message);
+      callback();
+      return;
+    }
+
+    const columnNames = new Set(columns.map((column) => column.name));
+    const migrations = [];
+
+    if (!columnNames.has('category')) {
+      migrations.push("ALTER TABLE menu_items ADD COLUMN category TEXT DEFAULT 'Main Dish'");
+    }
+
+    if (!columnNames.has('image_url')) {
+      migrations.push('ALTER TABLE menu_items ADD COLUMN image_url TEXT');
+    }
+
+    if (migrations.length === 0) {
+      callback();
+      return;
+    }
+
+    db.serialize(() => {
+      migrations.forEach((migration) => db.run(migration));
+      callback();
+    });
+  });
+}
+
 function seedRestaurants() {
   restaurants.forEach((restaurant) => {
     db.run(
@@ -49,8 +82,8 @@ function seedRestaurants() {
 
     restaurant.menuItems.forEach((item) => {
       db.run(
-        'INSERT INTO menu_items (id, restaurant_id, name, description, price) VALUES (?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET restaurant_id = excluded.restaurant_id, name = excluded.name, description = excluded.description, price = excluded.price',
-        [item.id, restaurant.id, item.name, item.description, item.price]
+        'INSERT INTO menu_items (id, restaurant_id, name, description, price, category, image_url) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET restaurant_id = excluded.restaurant_id, name = excluded.name, description = excluded.description, price = excluded.price, category = excluded.category, image_url = excluded.image_url',
+        [item.id, restaurant.id, item.name, item.description, item.price, item.category || 'Main Dish', item.imageUrl || null]
       );
     });
   });
@@ -59,18 +92,20 @@ function seedRestaurants() {
 function initializeDatabase() {
   db.serialize(() => {
     createTables();
-    db.get('SELECT COUNT(*) as count FROM restaurants', (err, row) => {
-      if (err) {
-        console.error(err.message);
-        return;
-      }
+    ensureMenuItemColumns(() => {
+      db.get('SELECT COUNT(*) as count FROM restaurants', (err, row) => {
+        if (err) {
+          console.error(err.message);
+          return;
+        }
 
-      if (row && row.count === 0) {
+        if (row && row.count === 0) {
+          seedRestaurants();
+          return;
+        }
+
         seedRestaurants();
-        return;
-      }
-
-      seedRestaurants();
+      });
     });
   });
 }

@@ -27,6 +27,11 @@ function getContentType(filePath) {
   if (filePath.endsWith('.css')) return 'text/css';
   if (filePath.endsWith('.js')) return 'application/javascript';
   if (filePath.endsWith('.json')) return 'application/json';
+  if (filePath.endsWith('.png')) return 'image/png';
+  if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) return 'image/jpeg';
+  if (filePath.endsWith('.gif')) return 'image/gif';
+  if (filePath.endsWith('.webp')) return 'image/webp';
+  if (filePath.endsWith('.svg')) return 'image/svg+xml';
   return 'text/plain';
 }
 
@@ -89,24 +94,18 @@ async function handleApiRequest(req, res) {
   if (req.url === '/api/menu' && req.method === 'POST') {
     try {
       const body = await readRequestBody(req);
-      const { restaurantId, name, description, price, category } = JSON.parse(body);
+      const { restaurantId, name, description, price, category, imageUrl } = JSON.parse(body);
 
       db.run(
-          'INSERT INTO menu_items (restaurant_id, name, description, price, category) VALUES (?, ?, ?, ?, ?)',
-          [restaurantId, name, description, price, category],
+          'INSERT INTO menu_items (restaurant_id, name, description, price, category, image_url) VALUES (?, ?, ?, ?, ?, ?)',
+          [restaurantId, name, description, price, category || 'Main Dish', imageUrl || null],
           function (err) {
             if (err) {
-              db.run(
-                  'INSERT INTO menu_items (restaurant_id, name, description, price) VALUES (?, ?, ?, ?)',
-                  [restaurantId, name, description, price],
-                  function (err2) {
-                    if (err2) return sendJson(res, 500, { error: 'Database error' });
-                    sendJson(res, 201, { id: this.lastID, success: true });
-                  }
-              );
-            } else {
-              sendJson(res, 201, { id: this.lastID, success: true });
+              sendJson(res, 500, { error: 'Database error' });
+              return;
             }
+
+            sendJson(res, 201, { id: this.lastID, success: true });
           }
       );
     } catch (error) {
